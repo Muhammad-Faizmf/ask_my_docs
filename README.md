@@ -69,7 +69,14 @@ If a provider reaches its usage limit or is temporarily unavailable, the app dis
 
 ## Deployment and data
 
-- Set `GOOGLE_API_KEY` and `GROQ_API_KEY` in the deployment environment. If a local `.env` file is present, its values take precedence. Keep API keys out of version control.
+- In Streamlit Community Cloud, add `GOOGLE_API_KEY` and `GROQ_API_KEY` as top-level TOML entries in **App settings → Secrets**. The app checks Streamlit Secrets first, then environment variables, then the local `.env` file.
+
+  ```toml
+  GOOGLE_API_KEY = "your-gemini-api-key"
+  GROQ_API_KEY = "your-groq-api-key"
+  ```
+
+  Keep real keys in Secrets or an ignored local file.
 - The app saves uploaded PDFs under `data/uploads/` and Chroma indexes under `data/chroma_db/`. The server needs write access to these directories. Keep runtime data out of version control and manage its retention on the host.
 - Document chunks are sent to Gemini for embedding. Retrieved excerpts can be sent to Groq as context for answering questions.
 - Streamlit loads viewer toolbar mode from `.streamlit/config.toml`.
