@@ -25,7 +25,8 @@ GOOGLE_API_KEY = get_api_key("GOOGLE_API_KEY")
 GROQ_API_KEY = get_api_key("GROQ_API_KEY")
 
 GROQ_MODEL = "openai/gpt-oss-120b"
-EMBEDDING_MODEL = "gemini-embedding-2"
+# The LangChain client sends retrieval task types with embedding requests.
+EMBEDDING_MODEL = "gemini-embedding-001"
 
 DATA_DIR = BASE_DIR / "data"
 UPLOAD_DIR = DATA_DIR / "uploads"

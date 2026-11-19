@@ -1,13 +1,16 @@
 
+import logging
 import re
 import shutil
 import uuid
 from pathlib import Path
 import streamlit as st
-from config import UPLOAD_DIR, VECTOR_DIR, MAX_UPLOAD_MB
+from config import GOOGLE_API_KEY, GROQ_API_KEY, MAX_UPLOAD_MB, UPLOAD_DIR, VECTOR_DIR
 from rag.pipeline import DocumentValidationError, process_documents
 from agents.rag_agent import build_rag_agent
 from ui.service_errors import model_service_message
+
+logger = logging.getLogger(__name__)
 
 
 def render_upload():
@@ -66,6 +69,19 @@ def render_upload():
 
 
 def process_uploaded_files(uploaded_files):
+    missing_keys = [
+        name
+        for name, value in (
+            ("GOOGLE_API_KEY", GOOGLE_API_KEY),
+            ("GROQ_API_KEY", GROQ_API_KEY),
+        )
+        if not value
+    ]
+    if missing_keys:
+        logger.error("Missing API configuration: %s", ", ".join(missing_keys))
+        st.error("The AI service is missing its API configuration. Contact the app administrator.")
+        return False
+
     session_id = st.session_state.session_id
 
     upload_directory = UPLOAD_DIR / session_id
@@ -73,6 +89,7 @@ def process_uploaded_files(uploaded_files):
 
     saved_paths = []
 
+    stage = "save uploads"
     try:
         with st.spinner("Processing documents..."):
             # Clear previous data for this session
@@ -121,12 +138,14 @@ def process_uploaded_files(uploaded_files):
 
                 saved_paths.append(saved_path)
 
+            stage = "extract and index documents"
             vector_store = process_documents(
                 file_paths=saved_paths,
                 vector_directory=vector_directory,
                 collection_name="documents",
             )
 
+            stage = "initialize chat"
             agent = build_rag_agent(vector_store)
 
             st.session_state.agent = agent
@@ -140,6 +159,13 @@ def process_uploaded_files(uploaded_files):
     except DocumentValidationError as error:
         st.error(str(error))
     except Exception as error:
+        cause = error.__cause__ or error
+        logger.error(
+            "Document processing failed during %s (%s, status=%s)",
+            stage,
+            type(cause).__name__,
+            getattr(cause, "status_code", getattr(cause, "code", None)),
+        )
         st.error(
             model_service_message(error, "process your documents")
             or "Unable to process your documents. Please try again."

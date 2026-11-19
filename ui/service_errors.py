@@ -3,7 +3,7 @@ from groq import APIStatusError
 
 
 def model_service_message(error: Exception, operation: str) -> str | None:
-    """Return a user-facing message for a model provider capacity error."""
+    """Return a user-facing message for a recognized model provider error."""
     while error is not None:
         if isinstance(error, APIStatusError):
             status_code = error.status_code
@@ -24,6 +24,11 @@ def model_service_message(error: Exception, operation: str) -> str | None:
             return (
                 f"The AI service is temporarily unavailable and couldn't {operation}. "
                 "Please try again later."
+            )
+        if status_code in (401, 403):
+            return (
+                "The AI service could not authenticate or access the model. "
+                "Contact the app administrator."
             )
 
         error = error.__cause__ or error.__context__
