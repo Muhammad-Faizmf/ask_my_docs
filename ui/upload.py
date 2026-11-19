@@ -158,6 +158,12 @@ def process_uploaded_files(uploaded_files):
 
     except DocumentValidationError as error:
         st.error(str(error))
+    except ImportError as error:
+        logger.error("Dependency import failed during %s: %s", stage, error)
+        st.error(
+            "Document processing is unavailable because a server dependency "
+            "could not load. Contact the app administrator."
+        )
     except Exception as error:
         cause = error.__cause__ or error
         logger.error(
