@@ -1,0 +1,11 @@
+streamlit
+langchain
+langgraph
+langchain-chroma
+langchain-google-genai
+langchain-groq
+langchain-text-splitters
+langchain-unstructured[local]
+nltk
+pdfminer-six
+python-dotenv
